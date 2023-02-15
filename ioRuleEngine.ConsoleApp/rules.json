@@ -1,0 +1,10 @@
+﻿[
+  {
+    "Condition": "TimeOfDay >= '09:00' && TimeOfDay < '18:00'",
+    "Action": "OpenBarrier"
+  },
+  {
+    "Condition": "ExternalCommand == 'CloseBarrier'",
+    "Action": "CloseBarrier"
+  }
+]
