@@ -8,6 +8,8 @@ using Quartz.Impl;
 // Load the rules from a JSON file
 string rulesFilePath = "rules.json";
 
+Console.WriteLine("Rules engine.");
+
 using (var streamReader = new StreamReader(rulesFilePath))
 using (var jsonReader = new JsonTextReader(streamReader))
 {
