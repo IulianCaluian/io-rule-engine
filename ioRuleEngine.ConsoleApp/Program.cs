@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
-using ioRuleEngine.ConsoleApp;
+using ioRulesEngine.ConsoleApp.Devices;
+using ioRulesEngine.ConsoleApp.Rules;
 using Newtonsoft.Json;
 using Quartz;
 using Quartz.Impl;
@@ -14,13 +15,14 @@ using (var streamReader = new StreamReader(rulesFilePath))
 using (var jsonReader = new JsonTextReader(streamReader))
 {
     var serializer = new JsonSerializer();
-    var rules = serializer.Deserialize<List<BarrierRule>>(jsonReader);
+    var rules = serializer.Deserialize<List<IORule>>(jsonReader) ?? new List<IORule>();
 
     var scheduler = StdSchedulerFactory.GetDefaultScheduler().Result;
-    scheduler.Start();
+    await scheduler.Start();
 
-    var ruleEngine = new BarrierRuleEngine(rules, scheduler);
-    ruleEngine.StartAsync();
+    var rulesEngine = new RulesEngine(rules, new DeviceProcessor());
+
+    await rulesEngine.StartAsync();
 }
 
 
