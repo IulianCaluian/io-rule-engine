@@ -1,4 +1,5 @@
 ﻿using ioRulesEngine.ConsoleApp.Devices;
+using ioRulesEngine.ConsoleApp.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,19 +12,26 @@ namespace ioRulesEngine.ConsoleApp.Rules
     public class RulesEngine
     {
         private readonly List<IORule> _rules;
-        private readonly DeviceProcessor _deviceProcessor;
 
+        private readonly DeviceProcessor _deviceProcessor;
         private bool _inputEventsWired = false;
         private List<IORule> _inputTriggeredRules;
-
         private bool _outputEventsWired = false;
         private List<IORule> _outputTriggeredRules;
+
+        private ExternalCommandsGenerator _externalCommandsGenerator;
+        private bool _externalCommandsEventsWired = false;
+        private List<IORule> _externalCommandsTriggeredRules;
+
+    
 
         public RulesEngine(List<IORule> rules, DeviceProcessor deviceProcessor)
         {
             _rules = rules;
             _deviceProcessor = deviceProcessor;
-            
+
+            _inputTriggeredRules = new List<IORule>();
+            _outputTriggeredRules = new List<IORule>();
         }
 
         public async Task StartAsync()
@@ -52,6 +60,17 @@ namespace ioRulesEngine.ConsoleApp.Rules
                     WireUpEventsForDeviceOutputEvents();
                     _outputTriggeredRules.Add(ioRule);
                     break;
+
+                case TriggerSourceEnum.ExternalCommand:
+                    WireUpEventsForExternalCommandsEvents();
+                    _externalCommandsTriggeredRules.Add(ioRule);
+                    break;
+
+                    // TimeZone,
+                    // TriggerVariable,
+                    // Procedure, 
+
+        
             }
         }
 
@@ -90,5 +109,24 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 // Test if the rule is activated for specific input. rule.Trigger.Source
             }
         }
+
+
+
+        private void WireUpEventsForExternalCommandsEvents()
+        {
+            if (_externalCommandsEventsWired == false)
+            {
+                _externalCommandsGenerator.CommandReceived += new EventHandler<EventArgs>(CommandGeneratorCommandReceived);
+                _externalCommandsEventsWired = true;
+            }
+        }
+
+        private void CommandGeneratorCommandReceived(object? sender, EventArgs e)
+        {
+            foreach (var rule in _externalCommandsTriggeredRules)
+            {
+                // Test if the rule is activated for specific input. rule.Trigger.Source
+            }
+        } 
     }
 }
