@@ -21,5 +21,13 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 Actions.Remove(action);
         }
 
+        public async Task Execute()
+        {
+            foreach(var action in Actions)
+            {
+                await action.Execute();
+            }
+        }
+
     }
 }

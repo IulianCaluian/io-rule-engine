@@ -18,5 +18,10 @@ namespace ioRulesEngine.ConsoleApp.Rules
     public class IOAction
     {
         IOActionType ActionType { get; set; }
+
+        public async Task Execute()
+        {
+
+        }
     }
 }

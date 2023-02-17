@@ -1,5 +1,7 @@
 ﻿using ioRulesEngine.ConsoleApp.Devices;
 using ioRulesEngine.ConsoleApp.Interfaces;
+using Quartz.Impl;
+using Quartz;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -13,17 +15,21 @@ namespace ioRulesEngine.ConsoleApp.Rules
     {
         private readonly List<IORule> _rules;
 
+        // Device
         private readonly DeviceProcessor _deviceProcessor;
         private bool _inputEventsWired = false;
         private List<IORule> _inputTriggeredRules;
         private bool _outputEventsWired = false;
         private List<IORule> _outputTriggeredRules;
 
+        // External commands
         private ExternalCommandsGenerator _externalCommandsGenerator;
         private bool _externalCommandsEventsWired = false;
         private List<IORule> _externalCommandsTriggeredRules;
 
-    
+        // Scheduler
+        private IScheduler _scheduler;
+        private Dictionary<Guid, IOProcedure> _timeTriggeredProcedures;
 
         public RulesEngine(List<IORule> rules, DeviceProcessor deviceProcessor)
         {
@@ -36,6 +42,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
         public async Task StartAsync()
         {
+            ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
+            _scheduler = await schedulerFactory.GetScheduler();
+
             foreach (var rule in _rules)
             {
                 if (!rule.IsEnabled) continue;
@@ -45,6 +54,8 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
                 WireUpTrigger(rule);
             }
+
+            await _scheduler.Start();
         }
 
         private void WireUpTrigger(IORule ioRule)
@@ -66,6 +77,12 @@ namespace ioRulesEngine.ConsoleApp.Rules
                     _externalCommandsTriggeredRules.Add(ioRule);
                     break;
 
+                case TriggerSourceEnum.TimeZone:
+                    {
+                        SetUpAnEventAtASpecificTime(ioRule);
+                    }
+                    break;
+
                     // TimeZone,
                     // TriggerVariable,
                     // Procedure, 
@@ -74,8 +91,13 @@ namespace ioRulesEngine.ConsoleApp.Rules
             }
         }
 
+        public async Task StopAsync()
+        {
+            await _scheduler.Shutdown();
+        }
 
 
+        #region Device events
         private void WireUpEventsForDeviceInputsEvents()
         {
             if (_inputEventsWired == false)
@@ -109,9 +131,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 // Test if the rule is activated for specific input. rule.Trigger.Source
             }
         }
+        #endregion
 
-
-
+        #region External commands
         private void WireUpEventsForExternalCommandsEvents()
         {
             if (_externalCommandsEventsWired == false)
@@ -127,6 +149,59 @@ namespace ioRulesEngine.ConsoleApp.Rules
             {
                 // Test if the rule is activated for specific input. rule.Trigger.Source
             }
-        } 
+        }
+        #endregion
+
+        #region Time triggered rules
+        
+        private const string TIME_BASED_JOB_TRIGGER = "timeBasedJobTrg";
+        private const string TIME_BASED_JOB = "timeBasedJob";
+        private const string TimeBasedJobDataProcedure = "jobDataProcedure";
+
+        private void SetUpAnEventAtASpecificTime(IORule ioRule)
+        {
+            // Time is ioRule.Trigger.TriggerSource == TriggerSourceEnum.TimeZone;
+            int hourToStart = 14;
+            int minuteToStart = 0;
+
+            Guid guid = Guid.NewGuid();
+
+            // Define the trigger to fire at 6pm
+            ITrigger trigger1 = TriggerBuilder.Create()
+                .WithIdentity( $"{TIME_BASED_JOB_TRIGGER}{guid}", guid.ToString())
+                .WithDailyTimeIntervalSchedule(s =>
+                    s.WithIntervalInHours(24)
+                    .OnEveryDay()
+                    .StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(hourToStart, minuteToStart)))
+                .Build();
+
+            // Define the job to execute when the trigger fires
+            _timeTriggeredProcedures.Add(guid, ioRule.Procedure);
+
+            IJobDetail job1 = JobBuilder.Create<TimeBasedJob>()
+                .WithIdentity($"{TIME_BASED_JOB}{guid}", guid.ToString())
+                .UsingJobData(new JobDataMap(new Dictionary<string, IOProcedure>()
+                {
+                    {TimeBasedJobDataProcedure , ioRule.Procedure  }
+                }))
+                .Build();
+
+            // Schedule the job to run at the specified time
+            _scheduler.ScheduleJob(job1, trigger1).Wait();
+        }
+
+        public class TimeBasedJob : IJob
+        {
+
+            public async Task Execute(IJobExecutionContext context)
+            {
+                JobDataMap dataMap = context.JobDetail.JobDataMap;
+                IOProcedure procedure =  (IOProcedure)dataMap[TimeBasedJobDataProcedure];
+
+                await procedure.Execute();
+            }
+        }
+
+        #endregion
     }
 }
