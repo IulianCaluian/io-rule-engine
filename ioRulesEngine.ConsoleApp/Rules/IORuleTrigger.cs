@@ -8,7 +8,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 {
     public enum TriggerSourceEnum
     {
-        TimeZone,
+        TimeEvent,
 
         Input,
         Output,
@@ -17,25 +17,11 @@ namespace ioRulesEngine.ConsoleApp.Rules
         Procedure, 
 
         ExternalCommand
-
-    }
-
-    public enum TriggerEventDataEnum
-    {
-        SourceActivated,
-        SourceDezactivated,
-
-        InputStateChanged,
-
-        Procedure,
-
-        ExternalCommand
-
     }
 
     public class IORuleTrigger
     {
         public TriggerSourceEnum TriggerSource { get; set; }
-        public TriggerEventDataEnum TriggerEventData { get; set; }
+        public TriggerEventData? TriggerEventData { get; set; } = null;
     }
 }

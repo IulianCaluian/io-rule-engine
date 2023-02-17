@@ -17,12 +17,12 @@ namespace ioRulesEngine.Tests
             { 
                 new IORule()
                 {
-                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Input, TriggerEventData = TriggerEventDataEnum.SourceActivated },
+                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Input },
                     Procedure = new IOProcedure(new List<IOAction>() { actionTriggeredOnInput })
                 } ,
                 new IORule()
                 {
-                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Output, TriggerEventData = TriggerEventDataEnum.SourceActivated },
+                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Output },
                     Procedure = new IOProcedure(new List<IOAction>() { actionTriggeredOnOutput })
                 }
             }; 

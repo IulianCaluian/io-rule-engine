@@ -9,6 +9,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using ioRulesEngine.ConsoleApp.Utils;
+using System.Diagnostics;
 
 namespace ioRulesEngine.ConsoleApp.Rules
 {
@@ -67,7 +68,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
             await _scheduler.Start();
         }
 
-        private void WireUpTrigger(IORule ioRule)
+        private async void WireUpTrigger(IORule ioRule)
         {
             switch (ioRule.Trigger.TriggerSource)
             {
@@ -86,9 +87,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
                     _externalCommandsTriggeredRules.Add(ioRule);
                     break;
 
-                case TriggerSourceEnum.TimeZone:
+                case TriggerSourceEnum.TimeEvent:
                     {
-                        SetUpAnEventAtASpecificTime(ioRule);
+                       await SetUpAnEventAtASpecificTime(ioRule);
                     }
                     break;
 
@@ -168,13 +169,16 @@ namespace ioRulesEngine.ConsoleApp.Rules
         private const string TIME_BASED_JOB = "timeBasedJob";
         private const string TimeBasedJobDataProcedure = "jobDataProcedure";
 
-        private void SetUpAnEventAtASpecificTime(IORule ioRule)
+        private async Task SetUpAnEventAtASpecificTime(IORule ioRule)
         {
             // Time is ioRule.Trigger.TriggerSource == TriggerSourceEnum.TimeZone;
-            int hourToStart = 14;
-            int minuteToStart = 0;
+            TimeEventTriggerEventData timeEvent = (TimeEventTriggerEventData) ioRule.Trigger.TriggerEventData;
+            int hourToStart = timeEvent.Hour;
+            int minuteToStart = timeEvent.Minute;
 
             Guid guid = Guid.NewGuid();
+
+            Console.WriteLine($"Time trigger registered with guid: {guid}");
 
             // Define the trigger to fire at 6pm
             ITrigger trigger1 = TriggerBuilder.Create()
@@ -186,8 +190,6 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 .Build();
 
             // Define the job to execute when the trigger fires
-            _timeTriggeredProcedures.Add(guid, ioRule.Procedure);
-
             IJobDetail job1 = JobBuilder.Create<TimeBasedJob>()
                 .WithIdentity($"{TIME_BASED_JOB}{guid}", guid.ToString())
                 .UsingJobData(new JobDataMap(new Dictionary<string, IOProcedure>()
@@ -197,7 +199,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 .Build();
 
             // Schedule the job to run at the specified time
-            _scheduler.ScheduleJob(job1, trigger1).Wait();
+            await  _scheduler.ScheduleJob(job1, trigger1);
         }
 
         public class TimeBasedJob : IJob

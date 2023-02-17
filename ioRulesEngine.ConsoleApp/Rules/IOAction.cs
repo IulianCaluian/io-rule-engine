@@ -18,7 +18,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
     public class IOAction
     {
         public IOActionType ActionType { get; set; }
-        public bool Executed { get; set; } = false;
+        public bool Executed { get; private set; } = false;
 
         public  Task Execute()
         {

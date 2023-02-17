@@ -30,7 +30,19 @@ using (var jsonReader = new JsonTextReader(streamReader))
 
 Console.WriteLine("Hello world!");
 
-RulesEngine rulesEngine = new RulesEngineBuilder().Build();
+List<IORule> rules = new List<IORule>()
+{
+    new IORule()
+    {
+        Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.TimeEvent, TriggerEventData = new TimeEventTriggerEventData() { Hour = 20, Minute = 50 } },
+        Procedure = new IOProcedure(new List<IOAction>()
+        {
+            new IOAction() { ActionType = IOActionType.ControllBarrierCommand }
+        })
+    }
+};
+
+RulesEngine rulesEngine = new RulesEngineBuilder().Rules(rules).Build();
 
 await rulesEngine.StartAsync();
 
