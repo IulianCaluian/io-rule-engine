@@ -6,6 +6,7 @@ using Quartz;
 using Quartz.Impl;
 
 
+/*
 // Load the rules from a JSON file
 string rulesFilePath = "rules.json";
 
@@ -24,6 +25,24 @@ using (var jsonReader = new JsonTextReader(streamReader))
 
     await rulesEngine.StartAsync();
 }
+
+*/
+
+Console.WriteLine("Hello world!");
+
+RulesEngine rulesEngine = new RulesEngineBuilder().Build();
+
+await rulesEngine.StartAsync();
+
+Console.WriteLine("Press any key to stop:");
+Console.ReadKey();
+await rulesEngine.StopAsync();
+
+Console.WriteLine("Goodbye!");
+await Task.Delay(2000);
+
+
+
 
 
 

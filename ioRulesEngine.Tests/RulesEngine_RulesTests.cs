@@ -5,7 +5,7 @@ using ioRulesEngine.Tests.Mocks;
 namespace ioRulesEngine.Tests
 {
     [TestClass]
-    public class RulesEngineTests
+    public class RulesEngine_RulesTests
     {
         [TestMethod]
         public async Task InputActivatedFromDevice_ShouldExecuteSpecificAction()
@@ -28,7 +28,7 @@ namespace ioRulesEngine.Tests
             }; 
 
             MockDeviceProcessor mockDevice = new MockDeviceProcessor();
-            RulesEngine rulesEngine = new RulesEngine(rules, mockDevice);
+            RulesEngine rulesEngine = new RulesEngineBuilder().Rules(rules).DeviceProcessor(mockDevice).Build();
 
             //Act:
             await rulesEngine.StartAsync();

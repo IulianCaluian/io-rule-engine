@@ -18,8 +18,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
         public IORule()
         {
+            IsEnabled = true;
             TimetableZone = TimetableZone.Default();
-
+          
 
         }
     }

@@ -17,11 +17,16 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
     public class IOAction
     {
-        IOActionType ActionType { get; set; }
+        public IOActionType ActionType { get; set; }
+        public bool Executed { get; set; } = false;
 
-        public async Task Execute()
+        public  Task Execute()
         {
+            Executed = true;
 
+            Console.WriteLine($"Executed action of type {ActionType}.");
+
+            return Task.CompletedTask;
         }
     }
 }

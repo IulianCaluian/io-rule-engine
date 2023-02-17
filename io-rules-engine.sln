@@ -3,7 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.4.33205.214
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ioRulesEngine.ConsoleApp", "ioRuleEngine.ConsoleApp\ioRulesEngine.ConsoleApp.csproj", "{CC4033B3-A2C3-47F8-BF62-7C90CD179B08}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ioRulesEngine.Tests", "ioRulesEngine.Tests\ioRulesEngine.Tests.csproj", "{059B0D2D-01CA-40C8-B417-6795F4C38A5C}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ioRulesEngine.ConsoleApp", "ioRulesEngine.ConsoleApp\ioRulesEngine.ConsoleApp.csproj", "{B43E69C3-B475-42B2-96ED-01DBB786E410}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,10 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{CC4033B3-A2C3-47F8-BF62-7C90CD179B08}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC4033B3-A2C3-47F8-BF62-7C90CD179B08}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC4033B3-A2C3-47F8-BF62-7C90CD179B08}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC4033B3-A2C3-47F8-BF62-7C90CD179B08}.Release|Any CPU.Build.0 = Release|Any CPU
+		{059B0D2D-01CA-40C8-B417-6795F4C38A5C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{059B0D2D-01CA-40C8-B417-6795F4C38A5C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{059B0D2D-01CA-40C8-B417-6795F4C38A5C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{059B0D2D-01CA-40C8-B417-6795F4C38A5C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B43E69C3-B475-42B2-96ED-01DBB786E410}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B43E69C3-B475-42B2-96ED-01DBB786E410}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B43E69C3-B475-42B2-96ED-01DBB786E410}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B43E69C3-B475-42B2-96ED-01DBB786E410}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

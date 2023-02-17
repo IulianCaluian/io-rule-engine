@@ -8,6 +8,7 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using ioRulesEngine.ConsoleApp.Utils;
 
 namespace ioRulesEngine.ConsoleApp.Rules
 {
@@ -16,28 +17,36 @@ namespace ioRulesEngine.ConsoleApp.Rules
         private readonly List<IORule> _rules;
 
         // Device
-        private readonly DeviceProcessor _deviceProcessor;
+        private readonly IDeviceProcessor? _deviceProcessor;
         private bool _inputEventsWired = false;
         private List<IORule> _inputTriggeredRules;
         private bool _outputEventsWired = false;
         private List<IORule> _outputTriggeredRules;
 
         // External commands
-        private ExternalCommandsGenerator _externalCommandsGenerator;
+        private ExternalCommandsGenerator? _externalCommandsGenerator;
         private bool _externalCommandsEventsWired = false;
         private List<IORule> _externalCommandsTriggeredRules;
 
         // Scheduler
-        private IScheduler _scheduler;
+        private IScheduler? _scheduler;
         private Dictionary<Guid, IOProcedure> _timeTriggeredProcedures;
 
-        public RulesEngine(List<IORule> rules, DeviceProcessor deviceProcessor)
+        public RulesEngine(
+            List<IORule>? rules, 
+            IDeviceProcessor? deviceProcessor,
+            ExternalCommandsGenerator? externalCommandsGenerator)
         {
             _rules = rules;
             _deviceProcessor = deviceProcessor;
 
             _inputTriggeredRules = new List<IORule>();
             _outputTriggeredRules = new List<IORule>();
+
+            _externalCommandsGenerator = new ExternalCommandsGenerator();
+            _externalCommandsTriggeredRules = new List<IORule>();
+
+            _timeTriggeredProcedures = new Dictionary<Guid, IOProcedure>();
         }
 
         public async Task StartAsync()
@@ -87,7 +96,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
                     // TriggerVariable,
                     // Procedure, 
 
-        
+
             }
         }
 
@@ -95,23 +104,23 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             await _scheduler.Shutdown();
         }
-
+    
 
         #region Device events
         private void WireUpEventsForDeviceInputsEvents()
         {
             if (_inputEventsWired == false)
             {
-                _deviceProcessor.InputChanged += new EventHandler<EventArgs>(InputChangedEventGenerated);
+                _deviceProcessor.InputChanged += new AsyncEventHandler<EventArgs>(InputChangedEventGenerated);
                 _inputEventsWired = true;
             }
         }
 
-        private void InputChangedEventGenerated(object? sender, EventArgs e)
+        private async Task InputChangedEventGenerated(object? sender, EventArgs e)
         {
             foreach(var rule in _inputTriggeredRules)
             {
-                // Test if the rule is activated for specific input. rule.Trigger.Source
+                await rule.Procedure.Execute();
             }
         }
 
@@ -119,15 +128,16 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             if (_outputEventsWired == false)
             {
-                _deviceProcessor.OutputChanged += new EventHandler<EventArgs>(OutputChangedEventGenerated);
+                _deviceProcessor.OutputChanged += new AsyncEventHandler<EventArgs>(OutputChangedEventGenerated);
                 _outputEventsWired = true;
             }
         }
 
-        private void OutputChangedEventGenerated(object? sender, EventArgs e)
+        private async Task OutputChangedEventGenerated(object? sender, EventArgs e)
         {
             foreach (var rule in _outputTriggeredRules)
             {
+                await rule.Procedure.Execute();
                 // Test if the rule is activated for specific input. rule.Trigger.Source
             }
         }

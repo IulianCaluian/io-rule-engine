@@ -5,9 +5,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
     {
         private List<IOAction> Actions { get; set; }
 
-        public IOProcedure()
+        public IOProcedure(List<IOAction>? actions = null)
         {
-            Actions = new List<IOAction>();
+            Actions = actions ?? new List<IOAction>();
         }
 
         public void AddAction(IOAction action)
