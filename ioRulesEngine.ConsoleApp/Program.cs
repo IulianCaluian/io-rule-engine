@@ -32,14 +32,10 @@ Console.WriteLine("Hello world!");
 
 List<IORule> rules = new List<IORule>()
 {
-    new IORule()
-    {
-        Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.TimeEvent, TriggerEventData = new TimeEventTriggerEventData() { Hour = 20, Minute = 50 } },
-        Procedure = new IOProcedure(new List<IOAction>()
-        {
-            new IOAction() { ActionType = IOActionType.ControllBarrierCommand }
-        })
-    }
+    new IORule(
+        new IORuleTrigger() { TriggerSource = TriggerSourceEnum.TimeEvent, TriggerEventData = new TimeEventTriggerEventData() { Hour = 21, Minute = 10 } },
+        new IOProcedure(new List<IOAction>()  {  new IOAction() { ActionType = IOActionType.ControllBarrierCommand }  })
+    )
 };
 
 RulesEngine rulesEngine = new RulesEngineBuilder().Rules(rules).Build();

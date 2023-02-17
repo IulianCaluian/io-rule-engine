@@ -15,7 +15,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 {
     public class RulesEngine
     {
-        private readonly List<IORule> _rules;
+        private readonly List<IORule>? _rules;
 
         // Device
         private readonly IDeviceProcessor? _deviceProcessor;
@@ -50,10 +50,16 @@ namespace ioRulesEngine.ConsoleApp.Rules
             _timeTriggeredProcedures = new Dictionary<Guid, IOProcedure>();
         }
 
+        /// <summary>
+        /// Start the rule engine by wiring the triggers.
+        /// <exception cref="InvalidOperationException">Thrown if some necessary parts are mising for triggers.</exception>
         public async Task StartAsync()
         {
             ISchedulerFactory schedulerFactory = new StdSchedulerFactory();
             _scheduler = await schedulerFactory.GetScheduler();
+
+            if (_rules == null)
+                throw new InvalidOperationException("No rules are defined for this RulesEngine.");
 
             foreach (var rule in _rules)
             {
@@ -101,15 +107,22 @@ namespace ioRulesEngine.ConsoleApp.Rules
             }
         }
 
+
         public async Task StopAsync()
         {
-            await _scheduler.Shutdown();
+            if (_scheduler != null)
+            {
+                await _scheduler.Shutdown();
+            }
         }
     
 
         #region Device events
         private void WireUpEventsForDeviceInputsEvents()
         {
+            if (_deviceProcessor == null)
+                throw new InvalidOperationException("Missing IDeviceProcessor from RulesEngine.");
+
             if (_inputEventsWired == false)
             {
                 _deviceProcessor.InputChanged += new AsyncEventHandler<EventArgs>(InputChangedEventGenerated);
@@ -127,6 +140,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
         private void WireUpEventsForDeviceOutputEvents()
         {
+            if (_deviceProcessor == null)
+                throw new ArgumentException("Missing IDeviceProcessor from RulesEngine.");
+
             if (_outputEventsWired == false)
             {
                 _deviceProcessor.OutputChanged += new AsyncEventHandler<EventArgs>(OutputChangedEventGenerated);
@@ -147,6 +163,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
         #region External commands
         private void WireUpEventsForExternalCommandsEvents()
         {
+            if (_externalCommandsGenerator == null)
+                throw new ArgumentException("Missing ExternalCommandsGenerator from RulesEngine.");
+
             if (_externalCommandsEventsWired == false)
             {
                 _externalCommandsGenerator.CommandReceived += new EventHandler<EventArgs>(CommandGeneratorCommandReceived);
@@ -172,7 +191,12 @@ namespace ioRulesEngine.ConsoleApp.Rules
         private async Task SetUpAnEventAtASpecificTime(IORule ioRule)
         {
             // Time is ioRule.Trigger.TriggerSource == TriggerSourceEnum.TimeZone;
-            TimeEventTriggerEventData timeEvent = (TimeEventTriggerEventData) ioRule.Trigger.TriggerEventData;
+            var timeTED = ioRule.Trigger.TriggerEventData;
+
+            if (timeTED == null || timeTED is not TimeEventTriggerEventData)
+                throw new InvalidOperationException("Timee-event trigger event-data is missing.");
+
+            TimeEventTriggerEventData timeEvent = (TimeEventTriggerEventData)timeTED;
             int hourToStart = timeEvent.Hour;
             int minuteToStart = timeEvent.Minute;
 
@@ -182,7 +206,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
             // Define the trigger to fire at 6pm
             ITrigger trigger1 = TriggerBuilder.Create()
-                .WithIdentity( $"{TIME_BASED_JOB_TRIGGER}{guid}", guid.ToString())
+                .WithIdentity($"{TIME_BASED_JOB_TRIGGER}{guid}", guid.ToString())
                 .WithDailyTimeIntervalSchedule(s =>
                     s.WithIntervalInHours(24)
                     .OnEveryDay()
@@ -199,7 +223,10 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 .Build();
 
             // Schedule the job to run at the specified time
-            await  _scheduler.ScheduleJob(job1, trigger1);
+            if (_scheduler != null)
+            {
+                await _scheduler.ScheduleJob(job1, trigger1);
+            }
         }
 
         public class TimeBasedJob : IJob

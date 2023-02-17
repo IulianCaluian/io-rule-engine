@@ -16,7 +16,7 @@ namespace ioRulesEngine.ConsoleApp.Utils
 
         }
 
-        internal static TimetableZone? Default()
+        internal static TimetableZone Default()
         {
             return new TimetableZone();
         }

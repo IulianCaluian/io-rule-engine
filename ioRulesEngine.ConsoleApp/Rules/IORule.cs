@@ -13,13 +13,16 @@ namespace ioRulesEngine.ConsoleApp.Rules
         public bool IsEnabled { get; set; }
         public TimetableZone TimetableZone { get; set; }
 
-        public IORuleTrigger Trigger { get; set; }
-        public IOProcedure Procedure { get; set; }
+        public IORuleTrigger Trigger { get; private set; }
+        public IOProcedure Procedure { get; private set; }
 
-        public IORule()
+        public IORule(IORuleTrigger trigger, IOProcedure procedure)
         {
             IsEnabled = true;
             TimetableZone = TimetableZone.Default();
+
+            Trigger = trigger;
+            Procedure = procedure;
           
 
         }

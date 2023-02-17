@@ -15,16 +15,14 @@ namespace ioRulesEngine.Tests
             var actionTriggeredOnOutput = new IOAction() { ActionType = IOActionType.ControllBarrierCommand };
             List<IORule> rules = new List<IORule>()
             { 
-                new IORule()
-                {
-                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Input },
-                    Procedure = new IOProcedure(new List<IOAction>() { actionTriggeredOnInput })
-                } ,
-                new IORule()
-                {
-                    Trigger = new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Output },
-                    Procedure = new IOProcedure(new List<IOAction>() { actionTriggeredOnOutput })
-                }
+                new IORule(
+                    new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Input },
+                    new IOProcedure(new List<IOAction>() { actionTriggeredOnInput })
+                ) ,
+                new IORule(
+                    new IORuleTrigger() { TriggerSource = TriggerSourceEnum.Output },
+                    new IOProcedure(new List<IOAction>() { actionTriggeredOnOutput })
+                )
             }; 
 
             MockDeviceProcessor mockDevice = new MockDeviceProcessor();
