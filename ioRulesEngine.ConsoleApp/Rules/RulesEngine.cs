@@ -10,6 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using ioRulesEngine.ConsoleApp.Utils;
 using System.Diagnostics;
+using System.Reflection;
 
 namespace ioRulesEngine.ConsoleApp.Rules
 {
@@ -52,6 +53,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
             _externalCommandsTriggeredRules = new List<IORule>();
 
             _timeTriggeredProcedures = new Dictionary<Guid, IOProcedure>();
+            _variableTriggeredProcedures = new List<Tuple<int, IOProcedure>>();
         }
 
         /// <summary>
@@ -82,31 +84,39 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             switch (ioRule.Trigger.TriggerSource)
             {
+                case TriggerSourceEnum.TriggerVariable:
+                    {
+                        WireUpRuleToATriggerVariaable(ioRule);
+                        Debug.WriteLine("here registered a rule");
+                    }
+                    break;
+
                 case TriggerSourceEnum.Input:
-                    WireUpEventsForDeviceInputsEvents();
-                    _inputTriggeredRules.Add(ioRule);
+                    {
+                        WireUpEventsForDeviceInputsEvents();
+                        _inputTriggeredRules.Add(ioRule);
+                    }
                     break;
 
                 case TriggerSourceEnum.Output:
-                    WireUpEventsForDeviceOutputEvents();
-                    _outputTriggeredRules.Add(ioRule);
+                    {
+                        WireUpEventsForDeviceOutputEvents();
+                        _outputTriggeredRules.Add(ioRule);
+                    }
                     break;
 
                 case TriggerSourceEnum.ExternalCommand:
-                    WireUpEventsForExternalCommandsEvents();
-                    _externalCommandsTriggeredRules.Add(ioRule);
+                    {
+                        WireUpEventsForExternalCommandsEvents();
+                        _externalCommandsTriggeredRules.Add(ioRule);
+                    }
                     break;
 
                 case TriggerSourceEnum.TimeEvent:
                     {
-                       await SetUpAnEventAtASpecificTime(ioRule);
+                        await SetUpAnEventAtASpecificTime(ioRule);
                     }
                     break;
-
-                    // TimeZone,
-                    // TriggerVariable,
-                    // Procedure, 
-
 
             }
         }
@@ -138,6 +148,19 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
         }
 
+        #region Trigger variable events 
+        public void WireUpRuleToATriggerVariaable(IORule ioRule)
+        {
+            var tvTED = ioRule.Trigger.TriggerEventData;
+
+            if (tvTED == null || tvTED is not TriggerVariableEventData)
+                throw new InvalidOperationException("TriggerVariable-event trigger event-data is missing.");
+
+            TriggerVariableEventData tvEvent = (TriggerVariableEventData)tvTED;
+
+            _variableTriggeredProcedures.Add(new Tuple<int, IOProcedure>(tvEvent.TriggerVariableNumber, ioRule.Procedure));
+        }
+        #endregion
 
         #region Device events
         private void WireUpEventsForDeviceInputsEvents()
@@ -216,7 +239,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
             var timeTED = ioRule.Trigger.TriggerEventData;
 
             if (timeTED == null || timeTED is not TimeEventTriggerEventData)
-                throw new InvalidOperationException("Timee-event trigger event-data is missing.");
+                throw new InvalidOperationException("Time-event trigger event-data is missing.");
 
             TimeEventTriggerEventData timeEvent = (TimeEventTriggerEventData)timeTED;
             int hourToStart = timeEvent.Hour;

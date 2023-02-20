@@ -67,8 +67,9 @@ namespace ioRulesEngine.Tests
 
             RulesEngine rulesEngine = new RulesEngineBuilder()
                 .Rules(rules).Build();
-
+          
             // Act:
+            await rulesEngine.StartAsync();
             await rulesEngine.SetTriggerVariable(triggerVariableNumber, true);
 
             // Asert:
@@ -119,6 +120,7 @@ namespace ioRulesEngine.Tests
                 .Rules(rules).Build();
 
             // Act:
+            await rulesEngine.StartAsync();
             await rulesEngine.SetTriggerVariable(triggerVariableNumber, true);
 
             // Asert:
