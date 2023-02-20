@@ -8,12 +8,13 @@ namespace ioRulesEngine.ConsoleApp.Rules
 {
     public enum TriggerSourceEnum
     {
+        TriggerVariable,
+
         TimeEvent,
 
         Input,
         Output,
 
-        TriggerVariable,
         Procedure, 
 
         ExternalCommand

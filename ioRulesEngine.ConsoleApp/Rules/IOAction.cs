@@ -8,16 +8,24 @@ namespace ioRulesEngine.ConsoleApp.Rules
 {
     public enum IOActionType
     {
+        GenericAction,
+
         ControllBarrierCommand,
-        ProcedureCommand,
+        
         TimeDelay,
         TriggerVariableSet,
-        TriggerActivation
+        TriggerActivation,
+
+        ExecuteRegisteredProcedure
     }
+
 
     public class IOAction
     {
         public IOActionType ActionType { get; set; }
+
+        public ActionEventData? ActionEventData { get; set; } 
+
         public bool Executed { get; private set; } = false;
 
         public  Task Execute()

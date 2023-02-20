@@ -33,6 +33,10 @@ namespace ioRulesEngine.ConsoleApp.Rules
         private IScheduler? _scheduler;
         private Dictionary<Guid, IOProcedure> _timeTriggeredProcedures;
 
+        // VariableTriggeredProcedures:
+        private bool[] _triggerVariables = new bool[128];
+        private List<Tuple<int,IOProcedure>> _variableTriggeredProcedures;
+
         public RulesEngine(
             List<IORule>? rules, 
             IDeviceProcessor? deviceProcessor,
@@ -115,7 +119,25 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 await _scheduler.Shutdown();
             }
         }
-    
+
+        public async Task SetTriggerVariable(int triggerVariableNumber, bool activated)
+        {
+            if (triggerVariableNumber < 1 || triggerVariableNumber > 127)
+                return;
+
+            if (activated == true)
+            {
+                foreach (var pair in _variableTriggeredProcedures)
+                    if (pair.Item1 == triggerVariableNumber)
+                    {
+                        await pair.Item2.Execute();
+                    }
+            }
+
+            _triggerVariables[triggerVariableNumber] = activated;
+
+        }
+
 
         #region Device events
         private void WireUpEventsForDeviceInputsEvents()

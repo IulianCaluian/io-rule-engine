@@ -11,6 +11,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
     public class RulesEngineBuilder
     {
         List<IORule>? _rules = null;
+        Dictionary<int, IOProcedure>? _registeredProcedures;
         IDeviceProcessor? _deviceProcessor = null;
         ExternalCommandsGenerator? _externalCommandsGenerator = null;
 
@@ -20,13 +21,19 @@ namespace ioRulesEngine.ConsoleApp.Rules
             return this;
         }
 
+        public RulesEngineBuilder RegisteredProcedures(Dictionary<int, IOProcedure> registeredProcedures)
+        {
+            _registeredProcedures = registeredProcedures;
+            return this;
+        }
+
         public RulesEngineBuilder DeviceProcessor(IDeviceProcessor deviceProcessor)
         {
             _deviceProcessor = deviceProcessor;
             return this;
         }
 
-        public RulesEngineBuilder DeviceProcessor(ExternalCommandsGenerator externalCommandsGenerator)
+        public RulesEngineBuilder ExternalCommandsGenerator(ExternalCommandsGenerator externalCommandsGenerator)
         {
             _externalCommandsGenerator = externalCommandsGenerator;
             return this;

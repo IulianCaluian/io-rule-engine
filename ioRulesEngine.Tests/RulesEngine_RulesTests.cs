@@ -38,5 +38,100 @@ namespace ioRulesEngine.Tests
 
 
         }
+
+        [TestMethod]
+        public async Task ActivatingTriggerVariable_ShouldExecuteProcedure()
+        {
+            int triggerVariableNumber = 1;
+
+            IOAction actionToExecute = new IOAction() { ActionType = IOActionType.GenericAction };
+
+            List<IORule> rules = new List<IORule>()
+            {
+                new IORule(
+                    new IORuleTrigger()
+                    {
+                        TriggerSource = TriggerSourceEnum.TriggerVariable,
+                        TriggerEventData = new  TriggerVariableEventData()
+                        {
+                            TriggerVariableNumber = triggerVariableNumber
+                        }
+                    },
+                    new IOProcedure(new List<IOAction>()
+                    {
+                        actionToExecute
+                    })
+                )
+            };
+
+
+            RulesEngine rulesEngine = new RulesEngineBuilder()
+                .Rules(rules).Build();
+
+            // Act:
+            await rulesEngine.SetTriggerVariable(triggerVariableNumber, true);
+
+            // Asert:
+            Assert.IsTrue(actionToExecute.Executed);
+        }
+
+
+
+        [TestMethod]
+        public async Task ExecuteRegisteredProcedureAction_ShouldExecuteSpecificProcedure()
+        {
+            //Arrange:
+            int triggerVariableNumber = 1;
+            int registeredProcedureNuumber = 2;
+            IOAction actionInRegisteredProcedure = new IOAction() { ActionType = IOActionType.GenericAction };
+            Dictionary<int, IOProcedure> registeredProcedures = new Dictionary<int, IOProcedure>() {
+                {  registeredProcedureNuumber, new IOProcedure(new List<IOAction>() { actionInRegisteredProcedure }) } 
+            };
+
+            List<IORule> rules = new List<IORule>()
+            {
+                new IORule(
+                    new IORuleTrigger()
+                    {
+                        TriggerSource = TriggerSourceEnum.TriggerVariable,
+                        TriggerEventData = new  TriggerVariableEventData()
+                        {
+                            TriggerVariableNumber = triggerVariableNumber
+                        }
+                    },
+                    new IOProcedure(new List<IOAction>()
+                    {
+                        new IOAction()
+                        {
+                            ActionType = IOActionType.ExecuteRegisteredProcedure,
+                            ActionEventData = new ExecuteProcedureActionEventData()
+                            {
+                                ProcedureNumber =  registeredProcedureNuumber
+                            }
+                        }
+                    })
+                )
+            };
+
+           
+            RulesEngine rulesEngine = new RulesEngineBuilder()
+                .RegisteredProcedures(registeredProcedures)
+                .Rules(rules).Build();
+
+            // Act:
+            await rulesEngine.SetTriggerVariable(triggerVariableNumber, true);
+
+            // Asert:
+            Assert.IsTrue(actionInRegisteredProcedure.Executed);
+
+        }
+
+        [TestMethod]
+        public async Task ProcedureTrigger_ShouldSpecificProcedureAndSequentProcedures()
+        {   
+            //Arrange:
+           
+
+        }
     }
 }
