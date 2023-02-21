@@ -24,11 +24,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
     {
         public IOActionType ActionType { get; set; }
 
-        public ActionEventData? ActionEventData { get; set; } 
+        public bool Executed { get; protected set; } = false;
 
-        public bool Executed { get; private set; } = false;
-
-        public  Task Execute()
+        public virtual Task Execute()
         {
             Executed = true;
 
@@ -37,4 +35,33 @@ namespace ioRulesEngine.ConsoleApp.Rules
             return Task.CompletedTask;
         }
     }
+
+    public class ExecuteRegisteredProcedureAction : IOAction
+    {
+        public int _procedureNumber; 
+
+        private RulesEngine? _rulesEngine;
+
+        public ExecuteRegisteredProcedureAction(int procedureNumber)
+        {
+            ActionType = IOActionType.ExecuteRegisteredProcedure;
+            _procedureNumber = procedureNumber; 
+        }
+
+        public override async Task Execute()
+        {
+            if (_rulesEngine != null)
+            {
+                await _rulesEngine.ExecuteRegisteredProcedure(_procedureNumber);
+            }
+
+            Executed = true;
+        }
+
+        public void SetRulesEngine(RulesEngine rulesEngine)
+        {
+            _rulesEngine = rulesEngine;
+        }
+    }
+
 }

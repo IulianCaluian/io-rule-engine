@@ -17,6 +17,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
     public class RulesEngine
     {
         private readonly List<IORule>? _rules;
+        Dictionary<int, IOProcedure> _registeredProcedures;
 
         // Device
         private readonly IDeviceProcessor? _deviceProcessor;
@@ -39,12 +40,17 @@ namespace ioRulesEngine.ConsoleApp.Rules
         private List<Tuple<int,IOProcedure>> _variableTriggeredProcedures;
 
         public RulesEngine(
-            List<IORule>? rules, 
+            List<IORule>? rules,
+             Dictionary<int, IOProcedure>? registeredProcedures,
             IDeviceProcessor? deviceProcessor,
             ExternalCommandsGenerator? externalCommandsGenerator)
         {
             _rules = rules;
+            _registeredProcedures = registeredProcedures ?? new Dictionary<int, IOProcedure>();
+            
             _deviceProcessor = deviceProcessor;
+
+
 
             _inputTriggeredRules = new List<IORule>();
             _outputTriggeredRules = new List<IORule>();
@@ -140,13 +146,39 @@ namespace ioRulesEngine.ConsoleApp.Rules
                 foreach (var pair in _variableTriggeredProcedures)
                     if (pair.Item1 == triggerVariableNumber)
                     {
-                        await pair.Item2.Execute();
+                        await ExecuteProcedure(pair.Item2);
                     }
             }
 
             _triggerVariables[triggerVariableNumber] = activated;
 
         }
+
+        public async Task ExecuteRegisteredProcedure(int number)
+        {
+            if (_registeredProcedures.ContainsKey(number))
+                await ExecuteProcedure(_registeredProcedures[number]);
+        }
+
+        private void InjectRulesEngineDependency(IOProcedure procedure)
+        {
+            // Inject RulesEngine where is needed
+            foreach (IOAction action in procedure.Actions)
+                if (action is ExecuteRegisteredProcedureAction)
+                {
+                    ExecuteRegisteredProcedureAction erpa = (ExecuteRegisteredProcedureAction)action;
+                    erpa.SetRulesEngine(this);
+                }
+        }
+
+        private async Task ExecuteProcedure(IOProcedure procedure)
+        {
+            InjectRulesEngineDependency(procedure);
+
+            await procedure.Execute();
+        }
+
+
 
         #region Trigger variable events 
         public void WireUpRuleToATriggerVariaable(IORule ioRule)
@@ -179,7 +211,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             foreach(var rule in _inputTriggeredRules)
             {
-                await rule.Procedure.Execute();
+                await ExecuteProcedure(rule.Procedure);
             }
         }
 
@@ -199,7 +231,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             foreach (var rule in _outputTriggeredRules)
             {
-                await rule.Procedure.Execute();
+                await ExecuteProcedure(rule.Procedure);
                 // Test if the rule is activated for specific input. rule.Trigger.Source
             }
         }
@@ -257,6 +289,8 @@ namespace ioRulesEngine.ConsoleApp.Rules
                     .OnEveryDay()
                     .StartingDailyAt(TimeOfDay.HourAndMinuteOfDay(hourToStart, minuteToStart)))
                 .Build();
+
+            InjectRulesEngineDependency(ioRule.Procedure);
 
             // Define the job to execute when the trigger fires
             IJobDetail job1 = JobBuilder.Create<TimeBasedJob>()

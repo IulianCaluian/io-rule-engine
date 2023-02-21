@@ -102,14 +102,8 @@ namespace ioRulesEngine.Tests
                     },
                     new IOProcedure(new List<IOAction>()
                     {
-                        new IOAction()
-                        {
-                            ActionType = IOActionType.ExecuteRegisteredProcedure,
-                            ActionEventData = new ExecuteProcedureActionEventData()
-                            {
-                                ProcedureNumber =  registeredProcedureNuumber
-                            }
-                        }
+                        new ExecuteRegisteredProcedureAction(registeredProcedureNuumber)
+
                     })
                 )
             };

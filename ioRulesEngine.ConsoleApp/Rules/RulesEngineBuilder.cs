@@ -49,7 +49,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
             if (_rules == null)
                 throw new ArgumentException("Rules were not provided for this rules engine.");
 
-            return new RulesEngine(_rules, _deviceProcessor, _externalCommandsGenerator);
+            return new RulesEngine(_rules, _registeredProcedures, _deviceProcessor, _externalCommandsGenerator);
         } 
     }
 }

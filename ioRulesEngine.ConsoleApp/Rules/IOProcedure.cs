@@ -3,7 +3,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 {
     public class IOProcedure
     {
-        private List<IOAction> Actions { get; set; }
+        public List<IOAction> Actions { get; private set; }
 
         public IOProcedure(List<IOAction>? actions = null)
         {
