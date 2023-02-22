@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using ioRulesEngine.ConsoleApp.Utils;
 using System.Diagnostics;
 using System.Reflection;
+using ioRulesEngine.ConsoleApp.Rules.Handlers;
 
 namespace ioRulesEngine.ConsoleApp.Rules
 {
@@ -20,11 +21,9 @@ namespace ioRulesEngine.ConsoleApp.Rules
         Dictionary<int, IOProcedure> _registeredProcedures;
 
         // Device
-        private readonly IDeviceProcessor? _deviceProcessor;
-        private bool _inputEventsWired = false;
-        private List<IORule> _inputTriggeredRules;
-        private bool _outputEventsWired = false;
-        private List<IORule> _outputTriggeredRules;
+        DeviceEventsHandler? _deviceEventsHandler;
+
+
 
         // External commands
         private ExternalCommandsGenerator? _externalCommandsGenerator;
@@ -47,19 +46,20 @@ namespace ioRulesEngine.ConsoleApp.Rules
         {
             _rules = rules;
             _registeredProcedures = registeredProcedures ?? new Dictionary<int, IOProcedure>();
-            
-            _deviceProcessor = deviceProcessor;
 
-
-
-            _inputTriggeredRules = new List<IORule>();
-            _outputTriggeredRules = new List<IORule>();
+            if (deviceProcessor != null)
+                _deviceEventsHandler = new DeviceEventsHandler(deviceProcessor, ExecuteProcedureDelegateImplementation);
 
             _externalCommandsGenerator = new ExternalCommandsGenerator();
             _externalCommandsTriggeredRules = new List<IORule>();
 
             _timeTriggeredProcedures = new Dictionary<Guid, IOProcedure>();
             _variableTriggeredProcedures = new List<Tuple<int, IOProcedure>>();
+        }
+
+        private async Task ExecuteProcedureDelegateImplementation(IOProcedure procedure)
+        {
+            await ExecuteProcedure(procedure);
         }
 
         /// <summary>
@@ -99,15 +99,13 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
                 case TriggerSourceEnum.Input:
                     {
-                        WireUpEventsForDeviceInputsEvents();
-                        _inputTriggeredRules.Add(ioRule);
+                        _deviceEventsHandler?.AddInputTriggeredRule(ioRule);
                     }
                     break;
 
                 case TriggerSourceEnum.Output:
                     {
-                        WireUpEventsForDeviceOutputEvents();
-                        _outputTriggeredRules.Add(ioRule);
+                        _deviceEventsHandler?.AddOutputTriggeredRule(ioRule);
                     }
                     break;
 
@@ -191,49 +189,6 @@ namespace ioRulesEngine.ConsoleApp.Rules
             TriggerVariableEventData tvEvent = (TriggerVariableEventData)tvTED;
 
             _variableTriggeredProcedures.Add(new Tuple<int, IOProcedure>(tvEvent.TriggerVariableNumber, ioRule.Procedure));
-        }
-        #endregion
-
-        #region Device events
-        private void WireUpEventsForDeviceInputsEvents()
-        {
-            if (_deviceProcessor == null)
-                throw new InvalidOperationException("Missing IDeviceProcessor from RulesEngine.");
-
-            if (_inputEventsWired == false)
-            {
-                _deviceProcessor.InputChanged += new AsyncEventHandler<EventArgs>(InputChangedEventGenerated);
-                _inputEventsWired = true;
-            }
-        }
-
-        private async Task InputChangedEventGenerated(object? sender, EventArgs e)
-        {
-            foreach(var rule in _inputTriggeredRules)
-            {
-                await ExecuteProcedure(rule.Procedure);
-            }
-        }
-
-        private void WireUpEventsForDeviceOutputEvents()
-        {
-            if (_deviceProcessor == null)
-                throw new ArgumentException("Missing IDeviceProcessor from RulesEngine.");
-
-            if (_outputEventsWired == false)
-            {
-                _deviceProcessor.OutputChanged += new AsyncEventHandler<EventArgs>(OutputChangedEventGenerated);
-                _outputEventsWired = true;
-            }
-        }
-
-        private async Task OutputChangedEventGenerated(object? sender, EventArgs e)
-        {
-            foreach (var rule in _outputTriggeredRules)
-            {
-                await ExecuteProcedure(rule.Procedure);
-                // Test if the rule is activated for specific input. rule.Trigger.Source
-            }
         }
         #endregion
 
