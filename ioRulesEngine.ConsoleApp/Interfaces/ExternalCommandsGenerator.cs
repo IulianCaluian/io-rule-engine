@@ -9,5 +9,6 @@ namespace ioRulesEngine.ConsoleApp.Interfaces
     public class ExternalCommandsGenerator
     {
         public event EventHandler<EventArgs>? CommandReceived;
+
     }
 }

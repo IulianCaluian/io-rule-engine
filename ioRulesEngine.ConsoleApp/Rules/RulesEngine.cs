@@ -22,13 +22,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
         // Device
         DeviceEventsHandler? _deviceEventsHandler;
-
-
-
-        // External commands
-        private ExternalCommandsGenerator? _externalCommandsGenerator;
-        private bool _externalCommandsEventsWired = false;
-        private List<IORule> _externalCommandsTriggeredRules;
+        ExternCmdsEventsHandler? _externCmdEventsHandler;
 
         // Scheduler
         private IScheduler? _scheduler;
@@ -50,8 +44,8 @@ namespace ioRulesEngine.ConsoleApp.Rules
             if (deviceProcessor != null)
                 _deviceEventsHandler = new DeviceEventsHandler(deviceProcessor, ExecuteProcedureDelegateImplementation);
 
-            _externalCommandsGenerator = new ExternalCommandsGenerator();
-            _externalCommandsTriggeredRules = new List<IORule>();
+            if (externalCommandsGenerator != null)
+                _externCmdEventsHandler = new ExternCmdsEventsHandler(externalCommandsGenerator, ExecuteProcedureDelegateImplementation);
 
             _timeTriggeredProcedures = new Dictionary<Guid, IOProcedure>();
             _variableTriggeredProcedures = new List<Tuple<int, IOProcedure>>();
@@ -111,8 +105,7 @@ namespace ioRulesEngine.ConsoleApp.Rules
 
                 case TriggerSourceEnum.ExternalCommand:
                     {
-                        WireUpEventsForExternalCommandsEvents();
-                        _externalCommandsTriggeredRules.Add(ioRule);
+                        _externCmdEventsHandler?.AddRule(ioRule);
                     }
                     break;
 
@@ -189,28 +182,6 @@ namespace ioRulesEngine.ConsoleApp.Rules
             TriggerVariableEventData tvEvent = (TriggerVariableEventData)tvTED;
 
             _variableTriggeredProcedures.Add(new Tuple<int, IOProcedure>(tvEvent.TriggerVariableNumber, ioRule.Procedure));
-        }
-        #endregion
-
-        #region External commands
-        private void WireUpEventsForExternalCommandsEvents()
-        {
-            if (_externalCommandsGenerator == null)
-                throw new ArgumentException("Missing ExternalCommandsGenerator from RulesEngine.");
-
-            if (_externalCommandsEventsWired == false)
-            {
-                _externalCommandsGenerator.CommandReceived += new EventHandler<EventArgs>(CommandGeneratorCommandReceived);
-                _externalCommandsEventsWired = true;
-            }
-        }
-
-        private void CommandGeneratorCommandReceived(object? sender, EventArgs e)
-        {
-            foreach (var rule in _externalCommandsTriggeredRules)
-            {
-                // Test if the rule is activated for specific input. rule.Trigger.Source
-            }
         }
         #endregion
 
